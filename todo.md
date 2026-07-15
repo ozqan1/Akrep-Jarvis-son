@@ -47,3 +47,8 @@
 - [x] todo.md durumlarını checkpoint öncesinde bütünüyle gözden geçir
 - [x] Son proje checkpoint’ini oluştur
 - [x] Projeyi GitHub ana dalına aktar
+- [x] Kullanıcının yeni eklediği dosyaları belirle ve güvenlik açısından incele (yeni yükleme veya uzak commit bulunmadı)
+- [x] Yeni proje durumuyla tip denetimi, lint ve 11 birim testini doğrula
+- [x] Yeni proje durumunu checkpoint olarak kaydet
+- [ ] Yeni dosyaları GitHub `main` dalına gönder ve uzak commit’i doğrula
+- [ ] Bilgisayarsız APK üretimi için desteklenen Publish akışını kullanıcıya bildir
