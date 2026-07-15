@@ -1,7 +1,7 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Platform,
   Pressable,
@@ -38,7 +38,8 @@ const DURUM_METNI: Record<AsistanDurumu, { baslik: string; aciklama: string }> =
   konusuyor: { baslik: "Yanıtlanıyor", aciklama: "AKREP yanıtı cihazınızda seslendiriyor." },
 };
 
-function UzayIzgarasi() {
+// Memoize space grid to prevent re-renders
+const UzayIzgarasi = memo(function UzayIzgarasi() {
   const noktalar = useMemo(
     () => [
       [24, 32, 1.4], [78, 68, 1], [142, 28, 1.2], [202, 84, 1.5], [286, 42, 1],
@@ -75,7 +76,7 @@ function UzayIzgarasi() {
       </Svg>
     </View>
   );
-}
+});
 
 type HızlıKartProps = {
   ikon: keyof typeof MaterialIcons.glyphMap;
@@ -85,15 +86,17 @@ type HızlıKartProps = {
   onPress: () => void;
 };
 
-function HizliKart({ ikon, baslik, aciklama, vurgu, onPress }: HızlıKartProps) {
+const HizliKart = memo(function HizliKart({ ikon, baslik, aciklama, vurgu, onPress }: HızlıKartProps) {
+  const handlePress = useCallback(() => {
+    if (Platform.OS !== "web") void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPress();
+  }, [onPress]);
+
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${baslik}. ${aciklama}`}
-      onPress={() => {
-        if (Platform.OS !== "web") void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        onPress();
-      }}
+      onPress={handlePress}
       style={({ pressed }) => [styles.hizliKart, pressed && styles.hizliKartBasili]}
     >
       <View style={[styles.hizliIkon, { borderColor: `${vurgu}66`, backgroundColor: `${vurgu}15` }]}>
@@ -106,7 +109,7 @@ function HizliKart({ ikon, baslik, aciklama, vurgu, onPress }: HızlıKartProps)
       <MaterialIcons name="chevron-right" size={24} color={RENK.ikincil} />
     </Pressable>
   );
-}
+});
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -125,7 +128,7 @@ export default function HomeScreen() {
     onKayitTamamlandi: async ({ sureMs }) => {
       setKullaniciAltYazi(`Yerel ses kaydı hazır · ${(sureMs / 1000).toFixed(1)} sn`);
       setDurum("dusunuyor");
-      await new Promise((resolve) => setTimeout(resolve, 650));
+      await new Promise((resolve) => setTimeout(resolve, 250));
       const yanit = "Ses kaydını cihazda hazırladım. Yerel komut motoru bağlantıya hazır.";
       setAsistanAltYazi(yanit);
       setDurum("konusuyor");
@@ -144,18 +147,30 @@ export default function HomeScreen() {
     else if (durum === "konusuyor") setDurum("hazir");
   }, [konusuyor, durum]);
 
-  const dinlemeyiBaslat = async () => {
+  const dinlemeyiBaslat = useCallback(async () => {
     if (Platform.OS !== "web") void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const basladi = await baslat();
     if (basladi) {
       setKullaniciAltYazi("Dinleniyor… konuşmanız sessizlik algılanana kadar tek oturumda kaydedilir.");
       setAsistanAltYazi("Komutunuzu dinliyorum.");
     }
-  };
+  }, [baslat]);
 
-  const dinlemeyiBitir = () => {
+  const dinlemeyiBitir = useCallback(() => {
     birak();
-  };
+  }, [birak]);
+
+  const handleIzinlerPress = useCallback(() => {
+    router.push("/izinler");
+  }, [router]);
+
+  const handleModelPress = useCallback(() => {
+    router.push("/model");
+  }, [router]);
+
+  const handleAyarlarPress = useCallback(() => {
+    router.push("/ayarlar");
+  }, [router]);
 
   return (
     <ScreenContainer edges={["top", "left", "right", "bottom"]} containerClassName="bg-background">
@@ -165,6 +180,8 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.icerik}
         keyboardShouldPersistTaps="handled"
+        removeClippedSubviews={true}
+        scrollEventThrottle={16}
       >
         <View style={styles.ustSatir}>
           <View style={styles.markaAlani}>
@@ -232,21 +249,21 @@ export default function HomeScreen() {
             baslik="İzin Merkezi"
             aciklama="Cihaz yetkilerini ve gizlilik durumunu yönetin."
             vurgu={RENK.yesil}
-            onPress={() => router.push("/izinler")}
+            onPress={handleIzinlerPress}
           />
           <HizliKart
             ikon="memory"
             baslik="Model Yönetimi"
             aciklama="Qwen modelini indirin, doğrulayın ve yönetin."
             vurgu={RENK.sari}
-            onPress={() => router.push("/model")}
+            onPress={handleModelPress}
           />
           <HizliKart
             ikon="tune"
             baslik="Ayarlar"
             aciklama="Ses, avatar, sağlayıcı ve güvenlik seçenekleri."
             vurgu={RENK.kirmizi}
-            onPress={() => router.push("/ayarlar")}
+            onPress={handleAyarlarPress}
           />
         </View>
 
@@ -278,14 +295,14 @@ const styles = StyleSheet.create({
     width: 9,
     height: 32,
     borderRadius: 999,
-    backgroundColor: RENK.yesil,
-    shadowColor: RENK.yesil,
+    backgroundColor: "#37F58A",
+    shadowColor: "#37F58A",
     shadowOpacity: 0.8,
     shadowRadius: 10,
     elevation: 8,
   },
-  marka: { color: RENK.yazi, fontSize: 19, fontWeight: "900", letterSpacing: 4.2, lineHeight: 23 },
-  gelistirici: { color: RENK.ikincil, fontSize: 10, fontWeight: "600", letterSpacing: 0.25, lineHeight: 14 },
+  marka: { color: "#F2FFF7", fontSize: 19, fontWeight: "900", letterSpacing: 4.2, lineHeight: 23 },
+  gelistirici: { color: "#93B8A2", fontSize: 10, fontWeight: "600", letterSpacing: 0.25, lineHeight: 14 },
   yerelRozet: {
     flexDirection: "row",
     alignItems: "center",
@@ -297,15 +314,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 7,
   },
-  yerelMetin: { color: RENK.yesil, fontSize: 10, fontWeight: "800", letterSpacing: 1.3 },
+  yerelMetin: { color: "#37F58A", fontSize: 10, fontWeight: "800", letterSpacing: 1.3 },
   avatarBolumu: { alignItems: "center", marginTop: -6 },
   durumSatiri: { marginTop: -8, flexDirection: "row", alignItems: "center", gap: 8 },
   durumNoktasi: { width: 7, height: 7, borderRadius: 999 },
-  durumBaslik: { color: RENK.yazi, fontSize: 18, fontWeight: "800", lineHeight: 24 },
-  durumAciklama: { marginTop: 4, color: RENK.ikincil, fontSize: 13, lineHeight: 19, textAlign: "center", maxWidth: 310 },
+  durumBaslik: { color: "#F2FFF7", fontSize: 18, fontWeight: "800", lineHeight: 24 },
+  durumAciklama: { marginTop: 4, color: "#93B8A2", fontSize: 13, lineHeight: 19, textAlign: "center", maxWidth: 310 },
   canliPanel: {
     borderWidth: 1,
-    borderColor: RENK.kenar,
+    borderColor: "#1D3D2D",
     backgroundColor: "#07110CCC",
     borderRadius: 24,
     paddingHorizontal: 18,
@@ -313,8 +330,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   canliUst: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  canliEtiket: { color: RENK.ikincil, fontSize: 10, fontWeight: "800", letterSpacing: 1.5 },
-  canliDeger: { color: RENK.yesil, fontSize: 11, fontWeight: "700" },
+  canliEtiket: { color: "#93B8A2", fontSize: 10, fontWeight: "800", letterSpacing: 1.5 },
+  canliDeger: { color: "#37F58A", fontSize: 11, fontWeight: "700" },
   altyaziPaneli: {
     borderRadius: 20,
     borderWidth: 1,
@@ -325,9 +342,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   altyaziSatiri: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
-  altyaziKimlik: { width: 42, color: RENK.sari, fontSize: 9, fontWeight: "900", letterSpacing: 1.1, lineHeight: 16 },
-  altyaziAkrep: { color: RENK.yesil },
-  altyaziMetni: { flex: 1, color: RENK.ikincil, fontSize: 11, lineHeight: 16 },
+  altyaziKimlik: { width: 42, color: "#FFD34E", fontSize: 9, fontWeight: "900", letterSpacing: 1.1, lineHeight: 16 },
+  altyaziAkrep: { color: "#37F58A" },
+  altyaziMetni: { flex: 1, color: "#93B8A2", fontSize: 11, lineHeight: 16 },
   altyaziAyirac: { height: 1, backgroundColor: "#173325" },
   konusButonu: {
     minHeight: 78,
@@ -336,8 +353,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 13,
-    backgroundColor: RENK.yesil,
-    shadowColor: RENK.yesil,
+    backgroundColor: "#37F58A",
+    shadowColor: "#37F58A",
     shadowOpacity: 0.3,
     shadowRadius: 18,
     elevation: 8,
@@ -351,7 +368,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#D7FFE8",
   },
-  konusBaslik: { color: RENK.arkaPlan, fontSize: 16, fontWeight: "900", lineHeight: 22 },
+  konusBaslik: { color: "#030806", fontSize: 16, fontWeight: "900", lineHeight: 22 },
   konusAlt: { marginTop: 2, color: "#164C2D", fontSize: 11, fontWeight: "700", lineHeight: 16 },
   kartlar: { gap: 10 },
   hizliKart: {
@@ -362,16 +379,16 @@ const styles = StyleSheet.create({
     gap: 12,
     borderRadius: 23,
     borderWidth: 1,
-    borderColor: RENK.kenar,
+    borderColor: "#1D3D2D",
     backgroundColor: "#0A1510E8",
   },
   hizliKartBasili: { opacity: 0.72, transform: [{ scale: 0.987 }] },
   hizliIkon: { width: 44, height: 44, borderRadius: 17, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   hizliMetinAlani: { flex: 1 },
-  hizliBaslik: { color: RENK.yazi, fontSize: 14, fontWeight: "800", lineHeight: 20 },
-  hizliAciklama: { marginTop: 2, color: RENK.ikincil, fontSize: 11, lineHeight: 16 },
+  hizliBaslik: { color: "#F2FFF7", fontSize: 14, fontWeight: "800", lineHeight: 20 },
+  hizliAciklama: { marginTop: 2, color: "#93B8A2", fontSize: 11, lineHeight: 16 },
   altImza: { flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 10, marginTop: 4 },
   altImzaMetin: { color: "#668A74", fontSize: 10, lineHeight: 15 },
-  altImzaMarka: { color: RENK.yesil, fontSize: 10, fontWeight: "800", letterSpacing: 0.8, lineHeight: 15 },
+  altImzaMarka: { color: "#37F58A", fontSize: 10, fontWeight: "800", letterSpacing: 0.8, lineHeight: 15 },
   altAyirac: { width: 3, height: 3, borderRadius: 99, backgroundColor: "#315A42" },
 });

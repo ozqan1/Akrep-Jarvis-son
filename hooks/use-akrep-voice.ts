@@ -39,6 +39,7 @@ export function useAkrepVoice({ onKayitTamamlandi }: UseAkrepVoiceOptions = {}) 
   const sessizlikBaslangiciRef = useRef<number | null>(null);
   const durduruluyorRef = useRef(false);
   const onKayitTamamlandiRef = useRef(onKayitTamamlandi);
+  const cleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     onKayitTamamlandiRef.current = onKayitTamamlandi;
@@ -59,8 +60,10 @@ export function useAkrepVoice({ onKayitTamamlandi }: UseAkrepVoiceOptions = {}) 
       await onKayitTamamlandiRef.current?.({ uri, sureMs });
       setOturumDurumu("hazir");
     } catch (error) {
-      setHata(error instanceof Error ? error.message : "Ses kaydı durdurulamadı.");
+      const errorMessage = error instanceof Error ? error.message : "Ses kaydı durdurulamadı.";
+      setHata(errorMessage);
       setOturumDurumu("hata");
+      console.warn("Recording stop error:", error);
     } finally {
       durduruluyorRef.current = false;
       sessizlikBaslangiciRef.current = null;
@@ -119,8 +122,10 @@ export function useAkrepVoice({ onKayitTamamlandi }: UseAkrepVoiceOptions = {}) 
       setOturumDurumu("kaydediyor");
       return true;
     } catch (error) {
-      setHata(error instanceof Error ? error.message : "Ses kaydı başlatılamadı.");
+      const errorMessage = error instanceof Error ? error.message : "Ses kaydı başlatılamadı.";
+      setHata(errorMessage);
       setOturumDurumu("hata");
+      console.warn("Recording start error:", error);
       return false;
     }
   }, [recorder, recorderState.isRecording]);
@@ -135,6 +140,13 @@ export function useAkrepVoice({ onKayitTamamlandi }: UseAkrepVoiceOptions = {}) 
   const sifirla = useCallback(() => {
     setHata(null);
     setOturumDurumu("hazir");
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      cleanupRef.current?.();
+      durduruluyorRef.current = false;
+    };
   }, []);
 
   const normalizeGenlik = Math.max(0.18, Math.min(1, ((recorderState.metering ?? -60) + 60) / 42));

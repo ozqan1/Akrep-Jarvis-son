@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Speech from "expo-speech";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const TTS_AYAR_ANAHTARI = "akrep:tts:v1";
 
@@ -23,16 +23,19 @@ export function useAkrepTts() {
   const [ayarlar, setAyarlarState] = useState<TtsAyarlari>(VARSAYILAN_AYARLAR);
   const [konusuyor, setKonusuyor] = useState(false);
   const [hazir, setHazir] = useState(false);
+  const speakAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     let etkin = true;
+    speakAbortRef.current = new AbortController();
+
     void (async () => {
       try {
         const [mevcutSesler, kayitliAyarlar] = await Promise.all([
           Speech.getAvailableVoicesAsync(),
           AsyncStorage.getItem(TTS_AYAR_ANAHTARI),
         ]);
-        if (!etkin) return;
+        if (!etkin || speakAbortRef.current?.signal.aborted) return;
 
         setSesler(mevcutSesler);
         if (kayitliAyarlar) {
@@ -42,8 +45,8 @@ export function useAkrepTts() {
           const turkceSes = mevcutSesler.find((ses) => ses.language.toLowerCase().startsWith("tr"));
           if (turkceSes) setAyarlarState((onceki) => ({ ...onceki, voiceId: turkceSes.identifier }));
         }
-      } catch {
-        // TTS motoru olmayan ortamlarda sistem varsayılanlarıyla devam edilir.
+      } catch (error) {
+        if (etkin) console.warn("TTS initialization failed:", error);
       } finally {
         if (etkin) setHazir(true);
       }
@@ -51,6 +54,7 @@ export function useAkrepTts() {
 
     return () => {
       etkin = false;
+      speakAbortRef.current?.abort();
       void Speech.stop();
     };
   }, []);
@@ -63,7 +67,9 @@ export function useAkrepTts() {
   const ayarlariGuncelle = useCallback(async (yeni: Partial<TtsAyarlari>) => {
     setAyarlarState((onceki) => {
       const guncel = { ...onceki, ...yeni };
-      void AsyncStorage.setItem(TTS_AYAR_ANAHTARI, JSON.stringify(guncel));
+      void AsyncStorage.setItem(TTS_AYAR_ANAHTARI, JSON.stringify(guncel)).catch((error) => {
+        console.warn("Failed to save TTS settings:", error);
+      });
       return guncel;
     });
   }, []);
@@ -71,24 +77,38 @@ export function useAkrepTts() {
   const konus = useCallback(
     async (metin: string, zorla = false) => {
       if (!metin.trim() || (!ayarlar.otomatikKonus && !zorla)) return;
-      await Speech.stop();
-      setKonusuyor(true);
-      Speech.speak(metin, {
-        language: "tr-TR",
-        voice: ayarlar.voiceId ?? undefined,
-        rate: ayarlar.rate,
-        pitch: ayarlar.pitch,
-        onDone: () => setKonusuyor(false),
-        onStopped: () => setKonusuyor(false),
-        onError: () => setKonusuyor(false),
-      });
+      if (speakAbortRef.current?.signal.aborted) return;
+
+      try {
+        await Speech.stop();
+        setKonusuyor(true);
+        Speech.speak(metin, {
+          language: "tr-TR",
+          voice: ayarlar.voiceId ?? undefined,
+          rate: ayarlar.rate,
+          pitch: ayarlar.pitch,
+          onDone: () => setKonusuyor(false),
+          onStopped: () => setKonusuyor(false),
+          onError: (error) => {
+            console.warn("Speech error:", error);
+            setKonusuyor(false);
+          },
+        });
+      } catch (error) {
+        console.warn("Speech failed:", error);
+        setKonusuyor(false);
+      }
     },
     [ayarlar],
   );
 
   const sustur = useCallback(async () => {
-    await Speech.stop();
-    setKonusuyor(false);
+    try {
+      await Speech.stop();
+      setKonusuyor(false);
+    } catch (error) {
+      console.warn("Failed to stop speech:", error);
+    }
   }, []);
 
   return {

@@ -1,4 +1,4 @@
-import { memo, useEffect } from "react";
+import { memo, useCallback, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
@@ -29,7 +29,15 @@ type CubukProps = {
   yukseklik: number;
 };
 
-function DalgaCubugu({ indeks, temel, ilerleme, aktif, genlik, renk, yukseklik }: CubukProps) {
+const DalgaCubugu = memo(function DalgaCubugu({
+  indeks,
+  temel,
+  ilerleme,
+  aktif,
+  genlik,
+  renk,
+  yukseklik,
+}: CubukProps) {
   const stil = useAnimatedStyle(() => {
     const faz = (ilerleme.value + indeks * 0.11) % 1;
     const hareket = interpolate(faz, [0, 0.25, 0.5, 0.75, 1], [0.36, 1, 0.52, 0.84, 0.36]);
@@ -42,7 +50,7 @@ function DalgaCubugu({ indeks, temel, ilerleme, aktif, genlik, renk, yukseklik }
   }, [aktif, genlik, temel, yukseklik]);
 
   return <Animated.View style={[styles.cubuk, { backgroundColor: renk }, stil]} />;
-}
+});
 
 function SesDalgasiBileseni({
   aktif,
@@ -51,23 +59,25 @@ function SesDalgasiBileseni({
   yukseklik = 44,
 }: SesDalgasiProps) {
   const ilerleme = useSharedValue(0);
+  const prevAktif = useSharedValue(aktif);
 
   useEffect(() => {
+    // Only restart animation if aktif changed
+    if (prevAktif.value === aktif) return;
+    prevAktif.value = aktif;
+
     ilerleme.value = withRepeat(
       withTiming(1, { duration: aktif ? 780 : 1900, easing: Easing.linear }),
       -1,
       false,
     );
-  }, [aktif, ilerleme]);
+  }, [aktif, ilerleme, prevAktif]);
 
-  return (
-    <View
-      accessibilityLabel={aktif ? "Canlı ses dalgası" : "Ses dalgası beklemede"}
-      style={[styles.kapsayici, { height: yukseklik }]}
-    >
-      {CUBUKLAR.map((temel, indeks) => (
+  const renderCubuks = useCallback(
+    () =>
+      CUBUKLAR.map((temel, indeks) => (
         <DalgaCubugu
-          key={`${indeks}-${temel}`}
+          key={indeks}
           indeks={indeks}
           temel={temel}
           ilerleme={ilerleme}
@@ -76,7 +86,16 @@ function SesDalgasiBileseni({
           renk={renk}
           yukseklik={yukseklik}
         />
-      ))}
+      )),
+    [ilerleme, aktif, genlik, renk, yukseklik],
+  );
+
+  return (
+    <View
+      accessibilityLabel={aktif ? "Canlı ses dalgası" : "Ses dalgası beklemede"}
+      style={[styles.kapsayici, { height: yukseklik }]}
+    >
+      {renderCubuks()}
     </View>
   );
 }
