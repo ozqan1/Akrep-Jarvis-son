@@ -50,5 +50,5 @@
 - [x] Kullanıcının yeni eklediği dosyaları belirle ve güvenlik açısından incele (yeni yükleme veya uzak commit bulunmadı)
 - [x] Yeni proje durumuyla tip denetimi, lint ve 11 birim testini doğrula
 - [x] Yeni proje durumunu checkpoint olarak kaydet
-- [ ] Yeni dosyaları GitHub `main` dalına gönder ve uzak commit’i doğrula
-- [ ] Bilgisayarsız APK üretimi için desteklenen Publish akışını kullanıcıya bildir
+- [x] Yeni proje durumunu GitHub `main` dalına gönder ve uzak commit’i doğrula
+- [x] Bilgisayarsız APK üretimi için desteklenen Publish akışını kullanıcıya bildir
