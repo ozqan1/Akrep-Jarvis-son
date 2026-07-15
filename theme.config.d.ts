@@ -1,17 +1,21 @@
-export const themeColors: {
-  primary: { light: string; dark: string };
-  background: { light: string; dark: string };
-  surface: { light: string; dark: string };
-  foreground: { light: string; dark: string };
-  muted: { light: string; dark: string };
-  border: { light: string; dark: string };
-  success: { light: string; dark: string };
-  warning: { light: string; dark: string };
-  error: { light: string; dark: string };
+export type ThemeSwatch = {
+  readonly light: string;
+  readonly dark: string;
 };
 
-declare const themeConfig: {
-  themeColors: typeof themeColors;
-};
+export type ThemeColorName =
+  | "primary"
+  | "background"
+  | "surface"
+  | "foreground"
+  | "muted"
+  | "border"
+  | "success"
+  | "warning"
+  | "error"
+  | "solar"
+  | "danger"
+  | "space"
+  | "glow";
 
-export default themeConfig;
+export const themeColors: Readonly<Record<ThemeColorName, ThemeSwatch>>;

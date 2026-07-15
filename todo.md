@@ -1,0 +1,49 @@
+# AKREP Asistan — Proje TODO
+
+- [x] Kullanıcı gereksinim dosyasını incele
+- [x] GitHub deposunun boş olduğunu doğrula
+- [x] Expo SDK 54 mobil proje temelini oluştur
+- [x] Mobil portre ve tek elle kullanım odaklı design.md hazırla
+- [x] Projeyi kullanıcı GitHub deposuyla ilişkilendir
+- [x] AKREP Asistan için özgün uygulama ikonu ve logo üret
+- [x] İkonu splash, favicon ve Android adaptive icon konumlarına uygula
+- [x] app.config.ts içinde uygulama adını, paket izinlerini ve logo URL’sini güncelle
+- [x] Koyu uzay teması ve AKREP renk belirteçlerini uygula
+- [x] Ana asistan ekranını geliştir
+- [x] Geliştirici: Nebi Özkan | Marka: AKREP imzasını açılış ve ana ekranda göster
+- [x] Akrep/AI avatarının dinleme, düşünme ve konuşma durumlarını geliştir
+- [x] Canlı ve akıcı ses dalgası animasyonunu geliştir
+- [x] Basılı tutarak konuşma etkileşimini geliştir
+- [x] Tek kayıt oturumu ve sessizlik sonlandırma durum makinesini geliştir
+- [x] Kullanıcı ve asistan canlı altyazı alanlarını geliştir
+- [x] Android/Expo TTS ses keşfi ve ses profili seçimini geliştir
+- [x] TTS hız, perde ve otomatik seslendirme ayarlarını kalıcılaştır
+- [x] İzin Merkezi ekranını geliştir
+- [x] Mikrofon, kamera, kişiler, arama ve bildirim izin akışlarını ekle
+- [x] Ekran üstü gösterim ve erişilebilirlik ayarlarına güvenli yönlendirme ekle
+- [x] Android 13/14 izin durumlarını açıklayan kullanıcı metinlerini ekle
+- [x] Cihaz komut sözleşmesini ve katı JSON şemasını tanımla
+- [x] Türkçe komut normalizasyonu ve niyet ayrıştırıcısını geliştir
+- [x] En az 250 komut örneğini kategori tabanlı katalogda tanımla
+- [x] Arama, SMS, kamera, el feneri, medya, uygulama açma ve sistem ayarı eylem adaptörlerini ekle
+- [x] Riskli cihaz eylemleri için açık kullanıcı onayı uygula
+- [x] Desteklenmeyen sistem anahtarlarında Android ayar ekranına geri dönüş uygula
+- [x] Qwen 2.5 1.5B GGUF model yönetimi ekranını geliştir
+- [x] Model indirme, duraklatma, ilerleme, dosya doğrulama ve silme altyapısını geliştir
+- [x] Yerel çıkarım motoru için değiştirilebilir arayüz ve geliştirme derlemesi köprüsü tanımla
+- [x] Sohbet yanıtı ile JSON işlev çağrısını güvenli biçimde ayır
+- [x] Yerel Qwen varsayılan sağlayıcısını ayarla
+- [x] Gemini ve OpenAI için isteğe bağlı güvenli API anahtarı ayarlarını ekle
+- [x] API anahtarlarını yalnızca SecureStore’da sakla ve günlüklerde maskele
+- [x] Hazır avatar seçeneklerini ve Avatar Stüdyosu temelini geliştir
+- [x] Mini asistan/overlay görünümünün React Native arayüzünü geliştir
+- [x] Özel Android overlay ve erişilebilirlik modülleri için açık entegrasyon sözleşmesi ekle
+- [x] Uyandırma sözcüğü ve kilit ekranı servisinin yerel modül sınırlarını belgele
+- [x] Birim testleri ekle
+- [x] Tip denetimi ve lint doğrulamasını çalıştır
+- [x] Mobil önizlemeyi deterministik testlerle doğrula
+- [x] README.md dosyasını kurulum, geliştirme ve APK üretim bilgileriyle tamamla
+- [x] PROJE_DURUMU.md dosyasında yapılanlar, sınırlar ve sonraki işleri kaydet
+- [x] todo.md durumlarını checkpoint öncesinde bütünüyle gözden geçir
+- [x] Son proje checkpoint’ini oluştur
+- [ ] Projeyi GitHub ana dalına aktar

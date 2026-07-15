@@ -32,7 +32,7 @@ const env = {
   appSlug: "akrep-asistan-mobil",
   // S3 URL of the app logo - set this to the URL returned by generate_image when creating custom logo
   // Leave empty to use the default icon from assets/images/icon.png
-  logoUrl: "",
+  logoUrl: "/manus-storage/akrep-asistan-icon_be4ab522.png",
   scheme: schemeFromBundleId,
   iosBundleId: bundleId,
   androidPackage: bundleId,
@@ -56,7 +56,7 @@ const config: ExpoConfig = {
   },
   android: {
     adaptiveIcon: {
-      backgroundColor: "#E6F4FE",
+      backgroundColor: "#030806",
       foregroundImage: "./assets/images/android-icon-foreground.png",
       backgroundImage: "./assets/images/android-icon-background.png",
       monochromeImage: "./assets/images/android-icon-monochrome.png",
@@ -64,7 +64,22 @@ const config: ExpoConfig = {
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     package: env.androidPackage,
-    permissions: ["POST_NOTIFICATIONS"],
+    permissions: [
+      "POST_NOTIFICATIONS",
+      "RECORD_AUDIO",
+      "CAMERA",
+      "READ_CONTACTS",
+      "CALL_PHONE",
+      "SEND_SMS",
+      "READ_PHONE_STATE",
+      "READ_CALL_LOG",
+      "BLUETOOTH_CONNECT",
+      "BLUETOOTH_SCAN",
+      "FOREGROUND_SERVICE",
+      "FOREGROUND_SERVICE_MICROPHONE",
+      "WAKE_LOCK",
+      "SYSTEM_ALERT_WINDOW"
+    ],
     intentFilters: [
       {
         action: "VIEW",
@@ -87,9 +102,39 @@ const config: ExpoConfig = {
   plugins: [
     "expo-router",
     [
+      "llama.rn",
+      {
+        enableEntitlements: true,
+        entitlementsProfile: "production",
+        forceCxx20: true,
+        enableOpenCL: true,
+      },
+    ],
+    [
+      "expo-camera",
+      {
+        cameraPermission: "AKREP Asistan'ın fotoğraf komutları için kamerayı kullanmasına izin verin.",
+        microphonePermission: "AKREP Asistan'ın video kaydı sırasında mikrofonu kullanmasına izin verin.",
+        recordAudioAndroid: true,
+      },
+    ],
+    [
+      "expo-contacts",
+      {
+        contactsPermission: "AKREP Asistan'ın isimle arama ve mesaj hazırlama komutlarında kişilerinizi aramasına izin verin.",
+      },
+    ],
+    [
+      "expo-notifications",
+      {
+        color: "#37F58A",
+        defaultChannel: "akrep-servis",
+      },
+    ],
+    [
       "expo-audio",
       {
-        microphonePermission: "Allow $(PRODUCT_NAME) to access your microphone.",
+        microphonePermission: "AKREP Asistan'ın sesli komutlarınızı dinlemesine izin verin.",
       },
     ],
     [
@@ -105,9 +150,9 @@ const config: ExpoConfig = {
         image: "./assets/images/splash-icon.png",
         imageWidth: 200,
         resizeMode: "contain",
-        backgroundColor: "#ffffff",
+        backgroundColor: "#030806",
         dark: {
-          backgroundColor: "#000000",
+          backgroundColor: "#030806",
         },
       },
     ],
