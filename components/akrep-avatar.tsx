@@ -1,4 +1,4 @@
-import { memo, useEffect } from "react";
+import { memo, useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
@@ -27,8 +27,13 @@ const DURUM_RENKLERI: Record<AsistanDurumu, string> = {
 function AkrepAvatarBileseni({ durum, boyut = 210 }: AkrepAvatarProps) {
   const nefes = useSharedValue(0);
   const konusma = useSharedValue(0);
+  const prevDurum = useRef(durum);
 
   useEffect(() => {
+    // Only update if durum actually changed
+    if (prevDurum.current === durum) return;
+    prevDurum.current = durum;
+
     nefes.value = withRepeat(
       withTiming(1, {
         duration: durum === "dinliyor" ? 760 : durum === "dusunuyor" ? 1100 : 1800,
@@ -46,7 +51,7 @@ function AkrepAvatarBileseni({ durum, boyut = 210 }: AkrepAvatarProps) {
       -1,
       true,
     );
-  }, [durum, konusma, nefes]);
+  }, [durum, nefes, konusma]);
 
   const haloStili = useAnimatedStyle(() => ({
     opacity: interpolate(nefes.value, [0, 1], [0.25, durum === "hazir" ? 0.52 : 0.9]),
