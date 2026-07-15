@@ -46,4 +46,4 @@
 - [x] PROJE_DURUMU.md dosyasında yapılanlar, sınırlar ve sonraki işleri kaydet
 - [x] todo.md durumlarını checkpoint öncesinde bütünüyle gözden geçir
 - [x] Son proje checkpoint’ini oluştur
-- [ ] Projeyi GitHub ana dalına aktar
+- [x] Projeyi GitHub ana dalına aktar
