@@ -40,19 +40,27 @@ export default function RootLayout() {
 
   // Initialize Manus runtime and prepare app
   useEffect(() => {
+    let mounted = true;
+
     async function prepare() {
       try {
+        // Initialize Manus runtime asynchronously without blocking UI
         initManusRuntime();
-        // Artificial delay to ensure everything is initialized
-        await new Promise(resolve => setTimeout(resolve, 500));
       } catch (e) {
         console.warn(e);
       } finally {
-        setIsReady(true);
-        await SplashScreen.hideAsync().catch(() => {});
+        if (mounted) {
+          setIsReady(true);
+          await SplashScreen.hideAsync().catch(() => {});
+        }
       }
     }
+
     prepare();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleSafeAreaUpdate = useCallback((metrics: Metrics) => {
