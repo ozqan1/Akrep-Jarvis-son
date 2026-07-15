@@ -2,6 +2,7 @@ import "@/global.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
@@ -26,16 +27,32 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
+// Keep splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 export default function RootLayout() {
   const initialInsets = initialWindowMetrics?.insets ?? DEFAULT_WEB_INSETS;
   const initialFrame = initialWindowMetrics?.frame ?? DEFAULT_WEB_FRAME;
 
   const [insets, setInsets] = useState<EdgeInsets>(initialInsets);
   const [frame, setFrame] = useState<Rect>(initialFrame);
+  const [isReady, setIsReady] = useState(false);
 
-  // Initialize Manus runtime for cookie injection from parent container
+  // Initialize Manus runtime and prepare app
   useEffect(() => {
-    initManusRuntime();
+    async function prepare() {
+      try {
+        initManusRuntime();
+        // Artificial delay to ensure everything is initialized
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setIsReady(true);
+        await SplashScreen.hideAsync().catch(() => {});
+      }
+    }
+    prepare();
   }, []);
 
   const handleSafeAreaUpdate = useCallback((metrics: Metrics) => {
@@ -77,6 +94,8 @@ export default function RootLayout() {
       },
     };
   }, [initialInsets, initialFrame]);
+
+  if (!isReady) return null;
 
   const content = (
     <GestureHandlerRootView style={{ flex: 1 }}>
