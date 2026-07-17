@@ -116,6 +116,7 @@ export default function HomeScreen() {
   const [durum, setDurum] = useState<AsistanDurumu>("hazir");
   const [kullaniciAltYazi, setKullaniciAltYazi] = useState("Henüz bir komut kaydedilmedi.");
   const [asistanAltYazi, setAsistanAltYazi] = useState("Hazırım. Komutunuzu bekliyorum.");
+  const [hooklerHazir, setHooklerHazir] = useState(false);
   const { konus, konusuyor } = useAkrepTts();
   const {
     baslat,
@@ -136,6 +137,11 @@ export default function HomeScreen() {
     },
   });
   const metin = DURUM_METNI[durum];
+
+  // Hook'ları hazır olduğunda işaretle
+  useEffect(() => {
+    setHooklerHazir(true);
+  }, []);
 
   useEffect(() => {
     if (kaydediyor) setDurum("dinliyor");
@@ -171,6 +177,19 @@ export default function HomeScreen() {
   const handleAyarlarPress = useCallback(() => {
     router.push("/ayarlar");
   }, [router]);
+
+  // Hook'lar hazır olana kadar loading göster
+  if (!hooklerHazir) {
+    return (
+      <ScreenContainer edges={["top", "left", "right", "bottom"]} containerClassName="bg-background">
+        <StatusBar barStyle="light-content" backgroundColor={RENK.arkaPlan} />
+        <UzayIzgarasi />
+        <View style={[styles.icerik, { justifyContent: "center", alignItems: "center" }]}>
+          <AkrepAvatar durum="hazir" />
+        </View>
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer edges={["top", "left", "right", "bottom"]} containerClassName="bg-background">
